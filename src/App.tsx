@@ -36,7 +36,8 @@ const App: React.FC = () => {
   const [showMapOverlay, setShowMapOverlay] = useState(true); // controls map overlay visibility
   const tooltipTimeout = useRef<NodeJS.Timeout | null>(null);
 
-  const GOOGLE_API_KEY = 'AIzaSyD34303fNXCoztRDaZ_PMAjFTPbOnLptvs'; // <-- Replace with your actual API key
+
+  const GOOGLE_API_KEY = process.env.REACT_APP_GOOGLE_API_KEY as string;
   const SEARCH_RADIUS_KM = 50;
   const SEARCH_RADIUS_METERS = SEARCH_RADIUS_KM * 1000;
 

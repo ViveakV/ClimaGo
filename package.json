@@ -1,5 +1,5 @@
 {
-  "name": "climaventures",
+  "name": "climago",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
@@ -41,6 +41,7 @@
     "@types/leaflet": "^1.9.17",
     "@types/react": "^18.2.41",
     "@types/react-dom": "^18.2.17",
-    "typescript": "^4.9.5"
+    "typescript": "^4.9.5",
+    "vite": "^6.3.3"
   }
 }
