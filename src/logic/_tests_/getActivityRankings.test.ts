@@ -1,0 +1,84 @@
+import {
+  getActivityRankings,
+  getLocationActivityScore,
+  getBestDaysForActivity,
+} from '../getActivityRankings';
+
+describe('getActivityRankings', () => {
+  const daily = {
+    temperature_2m_max: [2, 3, 4, 5, 6, 7, 8],
+    temperature_2m_min: [0, 1, 2, 3, 4, 5, 6],
+    precipitation_sum: [0, 1, 2, 3, 4, 5, 6],
+    snowfall_sum: [12, 11, 10, 9, 8, 7, 6],
+    windspeed_10m_max: [10, 15, 20, 25, 30, 35, 40],
+    humidity_2m_max: [60, 65, 70, 75, 80, 85, 90],
+    uv_index_max: [3, 4, 5, 6, 7, 8, 9],
+    daylight_hours: [8, 8, 8, 8, 8, 8, 8],
+    pollen_count: [10, 20, 30, 40, 50, 60, 70],
+  };
+
+  it('returns sorted rankings', () => {
+    const rankings = getActivityRankings(daily, 'Country', 'City');
+    expect(rankings.length).toBe(4);
+    expect(rankings[0].score).toBeGreaterThanOrEqual(rankings[1].score);
+  });
+
+  it('handles missing daily data', () => {
+    const rankings = getActivityRankings(null);
+    expect(rankings.every(r => r.score === 0)).toBe(true);
+  });
+});
+
+describe('getLocationActivityScore', () => {
+  const daily = {
+    temperature_2m_max: [25, 26, 27, 28, 29, 30, 31],
+    temperature_2m_min: [15, 16, 17, 18, 19, 20, 21],
+    precipitation_sum: [0, 0, 0, 0, 0, 0, 0],
+    snowfall_sum: [0, 0, 0, 0, 0, 0, 0],
+    windspeed_10m_max: [20, 21, 22, 23, 24, 25, 26],
+    humidity_2m_max: [50, 51, 52, 53, 54, 55, 56],
+    uv_index_max: [5, 6, 7, 8, 9, 10, 11],
+    daylight_hours: [10, 10, 10, 10, 10, 10, 10],
+    pollen_count: [10, 10, 10, 10, 10, 10, 10],
+  };
+
+  it('returns the highest score', () => {
+    const score = getLocationActivityScore(daily);
+    expect(typeof score).toBe('number');
+    expect(score).toBeGreaterThan(0);
+  });
+
+  it('returns the score for a specific activity', () => {
+    const score = getLocationActivityScore(daily, undefined, undefined, 'Surfing');
+    expect(typeof score).toBe('number');
+  });
+
+  it('returns 0 for missing daily', () => {
+    expect(getLocationActivityScore(null)).toBe(0);
+  });
+});
+
+describe('getBestDaysForActivity', () => {
+  const daily = {
+    temperature_2m_max: [10, 20, 30, 20, 10, 20, 30],
+    temperature_2m_min: [5, 10, 15, 10, 5, 10, 15],
+    precipitation_sum: [0, 1, 2, 3, 4, 5, 6],
+    snowfall_sum: [0, 0, 0, 0, 0, 0, 0],
+    windspeed_10m_max: [10, 10, 10, 10, 10, 10, 10],
+    humidity_2m_max: [50, 50, 50, 50, 50, 50, 50],
+    uv_index_max: [5, 5, 5, 5, 5, 5, 5],
+    daylight_hours: [8, 8, 8, 8, 8, 8, 8],
+    pollen_count: [10, 10, 10, 10, 10, 10, 10],
+  };
+
+  it('returns best days for activity', () => {
+    const bestDays = getBestDaysForActivity(daily, 'Outdoor sightseeing');
+    expect(Array.isArray(bestDays)).toBe(true);
+    expect(bestDays.length).toBeGreaterThan(0);
+    expect(bestDays.every(i => typeof i === 'number')).toBe(true);
+  });
+
+  it('returns empty array for missing daily', () => {
+    expect(getBestDaysForActivity(null, 'Skiing')).toEqual([]);
+  });
+});

@@ -42,20 +42,16 @@ export const TEXT = {
   MORETIME_FEATURES_DESC: "Here are some additional features and improvements I would add:",
   
   FEATURES: [
-    { icon: '🌍', text: 'Multi-day trip planner with route and weather optimization' },
     { icon: '📱', text: 'Mobile-friendly PWA with offline support' },
-    { icon: '🔔', text: 'Push/email notifications for best activity days' },
     { icon: '🗺️', text: 'More detailed map overlays (ski slopes, surf spots, POIs)' },
     { icon: '🧑‍🤝‍🧑', text: 'Social sharing and trip collaboration' },
     { icon: '🧠', text: 'AI-powered personalized recommendations' },
     { icon: '🌦️', text: 'Hourly weather and real-time updates' },
     { icon: '🗣️', text: 'Multi-language support' },
-    { icon: '💬', text: 'User reviews and tips for each activity/location' },
+    { icon: '💬', text: 'User reviews and tips for each activity/location & trip bookings integrations' },
     { icon: '🎨', text: 'More themes and accessibility fixes' },
     { icon: '🗂️', text: 'Fix the best days logic so order days in order of which days are better for the selected activity' },
     { icon: '📱', text: 'Fix mobile styling' },
     { icon: '🔔', text: 'Subscribe to location and activity to be notifed when next best day comes along' },
-    { icon: '🧳', text: 'Link with tripadvisor reviews and trip bookings' },
-    { icon: '🗺️', text: 'Overlay google maps with details on weather wind etc over 50km radius of selected location' },
   ],
 };

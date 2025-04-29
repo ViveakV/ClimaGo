@@ -142,8 +142,9 @@ export function getLocationActivityScore(
   city?: string,
   activity?: Activity
 ): number {
-  // Defensive: check daily
-  if (!daily || typeof daily !== 'object') return 0;
+  if (!daily || typeof daily !== 'object' || Object.keys(daily).length === 0) {
+    return 0;
+  }
   const rankings = getActivityRankings(daily, country, city);
   if (activity) {
     const found = rankings.find(r => r.activity === activity);
@@ -163,39 +164,32 @@ export function getBestDaysForActivity(
   country?: string,
   city?: string
 ): number[] {
-  // Defensive: check daily and required arrays
   if (
     !daily ||
     typeof daily !== 'object' ||
-    !Array.isArray(daily.temperature_2m_max) ||
-    !Array.isArray(daily.temperature_2m_min) ||
-    !Array.isArray(daily.precipitation_sum)
+    Object.keys(daily).length === 0 ||
+    !activity ||
+    !['Skiing', 'Surfing', 'Outdoor sightseeing', 'Indoor sightseeing'].includes(activity)
   ) {
     return [];
   }
-  const days = Array.from({ length: 7 }, (_, i) => i);
-  // For each day, build a fake "daily" object with just that day's data
-  const scores = days.map(i => {
-    // Defensive: check index bounds
-    const getVal = (arr: any, def: any) =>
-      Array.isArray(arr) && arr.length > i ? [arr[i]] : [def];
-    const dayData = {
-      temperature_2m_max: getVal(daily.temperature_2m_max, 15),
-      temperature_2m_min: getVal(daily.temperature_2m_min, 7),
-      precipitation_sum: getVal(daily.precipitation_sum, 2),
-      snowfall_sum: daily.snowfall_sum ? getVal(daily.snowfall_sum, 0) : undefined,
-      windspeed_10m_max: daily.windspeed_10m_max ? getVal(daily.windspeed_10m_max, 10) : undefined,
-      humidity_2m_max: daily.humidity_2m_max ? getVal(daily.humidity_2m_max, 50) : undefined,
-      uv_index_max: daily.uv_index_max ? getVal(daily.uv_index_max, 5) : undefined,
-      daylight_hours: daily.daylight_hours ? getVal(daily.daylight_hours, 12) : undefined,
-      pollen_count: daily.pollen_count ? getVal(daily.pollen_count, 0) : undefined,
-      city_name: daily.city_name,
-    };
-    const rankings = getActivityRankings(dayData, country, city);
-    const found = rankings.find(r => r.activity === activity);
-    return found ? found.score : 0;
-  });
+
+  // When calling getActivityRankings, use the provided country/city or undefined
+  const scores = Array.isArray(daily.temperature_2m_max)
+    ? daily.temperature_2m_max.map((_: unknown, i: number) => {
+        const dayData = Object.fromEntries(
+          Object.entries(daily).map(([k, v]) => [k, Array.isArray(v) ? v[i] : v])
+        );
+        // Use the function parameters country/city, not undefined variables
+        const rankings = getActivityRankings(dayData, country, city);
+        const found = rankings.find(r => r.activity === activity);
+        return found ? found.score : 0;
+      })
+    : [];
+
   // Find the max score(s)
   const maxScore = Math.max(...scores);
-  return days.filter(i => scores[i] === maxScore);
+  return scores
+    .map((s: number, i: number) => (s === maxScore ? i : -1))
+    .filter((i: number) => i !== -1);
 }

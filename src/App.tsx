@@ -244,7 +244,20 @@ const App: React.FC = () => {
     <div className="App app-background">
       <MoreTime />
       <div className="background-overlay" />
-      <div className="main-content">
+        <img
+          src={require('./assets/images/logo.png')}
+          alt="ClimaGo Logo"
+          className="climago-logo"
+          style={{
+            width: 250,
+            height: 250,
+            objectFit: 'contain',
+            margin: '32px auto 0 auto',
+            display: 'block',
+            filter: 'drop-shadow(0 2px 8px #0002)'
+          }}
+        />
+        <div className="main-content">
         <div className="input-toggle-container">
           <label
             className={`input-toggle ${inputMode === 'city' ? 'active-city' : ''}`}

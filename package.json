@@ -16,7 +16,7 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "test": "react-scripts test",
+    "test": "react-scripts test --coverage",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
@@ -38,6 +38,7 @@
     ]
   },
   "devDependencies": {
+    "@types/jest": "^29.5.14",
     "@types/leaflet": "^1.9.17",
     "@types/react": "^18.2.41",
     "@types/react-dom": "^18.2.17",

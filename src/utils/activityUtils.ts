@@ -8,6 +8,5 @@ export const activityMeta: Record<Activity, { icon: string; color: string }> = {
 };
 
 export function formatDay(dateStr: string) {
-  const d = new Date(dateStr);
-  return d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+  return new Date(dateStr).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
 }
