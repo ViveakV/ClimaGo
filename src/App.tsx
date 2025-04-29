@@ -2,6 +2,9 @@ import React, { useState, useRef, useEffect } from 'react';
 import './App.css';
 import background from './assets/images/background.png';
 import { getActivityRankings, getBestDaysForActivity } from './logic/getActivityRankings';
+import GoogleMapPicker from './components/GoogleMapPicker';
+import MoreTimeModal from './components/MoreTimeModal';
+import { activityMeta, formatDay } from './utils/activityUtils';
 
 type Activity = 'Skiing' | 'Surfing' | 'Outdoor sightseeing' | 'Indoor sightseeing';
 
@@ -40,14 +43,6 @@ const App: React.FC = () => {
   const GOOGLE_API_KEY = process.env.REACT_APP_GOOGLE_API_KEY as string;
   const SEARCH_RADIUS_KM = 50;
   const SEARCH_RADIUS_METERS = SEARCH_RADIUS_KM * 1000;
-
-  // Add icons and colors for each activity
-  const activityMeta: Record<Activity, { icon: string; color: string }> = {
-    'Skiing': { icon: '🎿', color: '#4fc3f7' },
-    'Surfing': { icon: '🏄‍♂️', color: '#00bfae' },
-    'Outdoor sightseeing': { icon: '🌞', color: '#ffd54f' },
-    'Indoor sightseeing': { icon: '🏛️', color: '#b39ddb' },
-  };
 
   // Fetch suggestions as user types
   useEffect(() => {
@@ -234,114 +229,6 @@ const App: React.FC = () => {
     setShowSuggestions(true);
   };
 
-  // Helper to format date as "Tue, Jun 11"
-  function formatDay(dateStr: string) {
-    const d = new Date(dateStr);
-    return d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
-  }
-
-  // Google Maps loader
-  function GoogleMapPicker({
-    pickedLocation,
-    setPickedLocation,
-    apiKey,
-  }: {
-    pickedLocation: { lat: number; lng: number } | null;
-    setPickedLocation: (loc: { lat: number; lng: number }) => void;
-    apiKey: string;
-  }) {
-    const mapRef = useRef<HTMLDivElement>(null);
-    const markerRef = useRef<any>(null);
-    const [mapLoaded, setMapLoaded] = useState(false);
-
-    // Track script loading globally to avoid duplicates
-    // @ts-ignore
-    if (typeof window !== 'undefined' && !(window as any)._googleMapsScriptLoading) {
-      // @ts-ignore
-      (window as any)._googleMapsScriptLoading = false;
-    }
-
-    useEffect(() => {
-      // Only load script if not already loaded or loading
-      // @ts-ignore
-      if (!(window as any).google || !(window as any).google.maps) {
-        // @ts-ignore
-        if (!(window as any)._googleMapsScriptLoading) {
-          // @ts-ignore
-          (window as any)._googleMapsScriptLoading = true;
-          const script = document.createElement('script');
-          script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}`;
-          script.async = true;
-          script.defer = true;
-          script.onload = () => {
-            setMapLoaded(true);
-            // @ts-ignore
-            (window as any)._googleMapsScriptLoading = false;
-          };
-          document.body.appendChild(script);
-        } else {
-          // Wait for script to load
-          const interval = setInterval(() => {
-            // @ts-ignore
-            if ((window as any).google && (window as any).google.maps) {
-              setMapLoaded(true);
-              clearInterval(interval);
-            }
-          }, 100);
-          return () => clearInterval(interval);
-        }
-      } else {
-        setMapLoaded(true);
-      }
-    }, [apiKey]);
-
-    useEffect(() => {
-      if (!mapLoaded || !mapRef.current) return;
-      // @ts-ignore
-      const google = window.google;
-      const center = pickedLocation || { lat: 20, lng: 0 };
-      const map = new google.maps.Map(mapRef.current, {
-        center,
-        zoom: pickedLocation ? 8 : 2,
-        disableDefaultUI: false,
-      });
-
-      // Place marker if pickedLocation exists
-      if (pickedLocation) {
-        markerRef.current = new google.maps.Marker({
-          position: pickedLocation,
-          map,
-        });
-      }
-
-      // Add click listener to drop/move pin
-      map.addListener('click', (e: any) => {
-        const lat = e.latLng.lat();
-        const lng = e.latLng.lng();
-        setPickedLocation({ lat, lng });
-        if (markerRef.current) {
-          markerRef.current.setMap(null);
-        }
-        markerRef.current = new google.maps.Marker({
-          position: { lat, lng },
-          map,
-        });
-      });
-
-      // If pickedLocation changes, pan to it
-      if (pickedLocation) {
-        map.panTo(pickedLocation);
-      }
-    }, [mapLoaded, pickedLocation, setPickedLocation]);
-
-    return (
-      <div
-        ref={mapRef}
-        style={{ height: 300, width: '100%', borderRadius: 12 }}
-      />
-    );
-  }
-
   const [showMoreTimePrompt, setShowMoreTimePrompt] = useState(false);
   const [showMoreTimeOverlay, setShowMoreTimeOverlay] = useState(false);
   const [moreTimePassword, setMoreTimePassword] = useState('');
@@ -359,45 +246,16 @@ const App: React.FC = () => {
       }}
     >
       {/* "If I had more time" icon in top right */}
-      <div
-        style={{
-          position: 'fixed',
-          top: 18,
-          right: 24,
-          zIndex: 3000,
-          cursor: 'pointer',
-          background: 'rgba(255,255,255,0.85)',
-          borderRadius: '50%',
-          width: 44,
-          height: 44,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          boxShadow: '0 2px 12px #0002',
-          transition: 'background 0.2s',
-        }}
-        title="If I had more time"
-        onClick={() => {
-          setShowMoreTimePrompt(true);
-          setMoreTimePassword('');
-          setWrongPassword(false);
-        }}
-        tabIndex={0}
-        onKeyDown={e => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            setShowMoreTimePrompt(true);
-            setMoreTimePassword('');
-            setWrongPassword(false);
-          }
-        }}
-      >
-        {/* Lightbulb icon */}
-        <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
-          <circle cx="12" cy="12" r="10" fill="#fffde7" stroke="#ffd600" strokeWidth="2"/>
-          <path d="M9 17h6M10 20h4" stroke="#ffd600" strokeWidth="1.5" strokeLinecap="round"/>
-          <path d="M12 6a4 4 0 0 1 4 4c0 2-2 3-2 5h-4c0-2-2-3-2-5a4 4 0 0 1 4-4z" stroke="#ffd600" strokeWidth="1.5" fill="#fffde7"/>
-        </svg>
-      </div>
+      <MoreTimeModal
+        showPrompt={showMoreTimePrompt}
+        setShowPrompt={setShowMoreTimePrompt}
+        showOverlay={showMoreTimeOverlay}
+        setShowOverlay={setShowMoreTimeOverlay}
+        password={moreTimePassword}
+        setPassword={setMoreTimePassword}
+        wrongPassword={wrongPassword}
+        setWrongPassword={setWrongPassword}
+      />
       {/* Password prompt popup */}
       {showMoreTimePrompt && (
         <div
