@@ -4,9 +4,7 @@ import background from './assets/images/background.png';
 import { getActivityRankings, getBestDaysForActivity } from './logic/getActivityRankings';
 import GoogleMapPicker from './components/GoogleMapPicker';
 import MoreTimeModal from './components/MoreTimeModal';
-import { activityMeta, formatDay } from './utils/activityUtils';
-
-type Activity = 'Skiing' | 'Surfing' | 'Outdoor sightseeing' | 'Indoor sightseeing';
+import { activityMeta, formatDay, Activity } from './utils/activityUtils';
 
 interface Ranking {
   activity: Activity;
@@ -973,16 +971,6 @@ const App: React.FC = () => {
                           {(isSkiingUnavailable || isSurfingUnavailable) ? 'N/A' : `${r.score}/10`}
                         </span>
                       </div>
-                      <div style={{
-                        color: '#444',
-                        fontSize: '1.01rem',
-                        textAlign: 'center',
-                        minHeight: 36,
-                        marginTop: 2,
-                        animation: 'fadeIn 1s',
-                      }}>
-                        {r.reason}
-                      </div>
                     </div>
                   );
                 })}
@@ -1122,6 +1110,17 @@ const App: React.FC = () => {
                           )
                         );
                       })()}
+                    </div>
+                    {/* Show the reason for the selected activity in the popup */}
+                    <div style={{
+                      color: '#444',
+                      fontSize: '1.01rem',
+                      textAlign: 'center',
+                      marginTop: 10,
+                      animation: 'fadeIn 1s',
+                      fontWeight: 500,
+                    }}>
+                      {rankings.find(r => r.activity === popupActivity)?.reason}
                     </div>
                   </div>
                 </div>
