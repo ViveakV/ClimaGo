@@ -1,70 +1,63 @@
-# Getting Started with Create ClimaGo
+# ClimaGo
 
-This project was bootstrapped with [Create ClimaGo](https://github.com/facebook/create-react-app).
+ClimaGo is a project that takes a city/town and provides a ranking of how desirable it will be to visit for various activities based on the weather for the next 7 days.
 
-## Available Scripts
+## Getting Started
 
-In the project directory, you can run:
+### Prerequisites
 
-### `npm start`
+- Node.js (v16 or above recommended)
+- npm (v8 or above)
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+### Installation
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+Clone the repository and install dependencies:
 
-### `npm test`
+```bash
+npm install
+```
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### Running the Application
 
-### `npm run build`
+To start the application locally:
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+```bash
+npm start
+```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### Running Tests
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+To run the test suite locally:
 
-### `npm run eject`
+```bash
+npm test
+```
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+Or, if you use a specific test runner (e.g., Jest):
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+```bash
+npx jest
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+## Project Structure
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+| File/Folder | Description |
+|-------------|-------------|
+| `src/`      | Contains the main source code for the application. |
+| `src/index.js` or `src/index.ts` | Entry point of the application. |
+| `src/components/` | Contains reusable UI components. |
+| `src/services/` | Contains logic for API calls and business logic. |
+| `package.json` | Project metadata, scripts, and dependencies. |
+| `README.md` | Project documentation and instructions. |
+| `_tests_/` | Contains test files for the application. |
 
-## Learn More
+## Technical Choices
 
-You can learn more in the [Create ClimaGo documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+- **Language:** [JTypeScript] was chosen for its strong ecosystem and ease of use for both frontend and backend development with the added benefit of typechecking to reduce runtime errors.
+- **Framework:** [React] was selected for its component-based architecture and community support plus priod experience.
+- **Testing:** [Jest] is used for unit and integration testing due to its speed and developer-friendly features.
+- **Dependency Management:** npm is used for managing third-party libraries and scripts.
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## Contributing
 
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
