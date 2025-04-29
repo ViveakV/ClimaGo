@@ -2,7 +2,6 @@ import { Activity } from '../utils/activityUtils';
 import {
   getActivityRankings,
   getLocationActivityScore,
-  getBestDaysForActivity,
 } from './getActivityRankings';
 
 describe('getActivityRankings', () => {
@@ -89,46 +88,5 @@ describe('getLocationActivityScore', () => {
 
   it('returns 0 for missing daily', () => {
     expect(getLocationActivityScore(null)).toBe(0);
-  });
-});
-
-describe('getBestDaysForActivity', () => {
-  const daily = {
-    temperature_2m_max: [10, 20, 30, 20, 10, 20, 30],
-    temperature_2m_min: [5, 10, 15, 10, 5, 10, 15],
-    precipitation_sum: [0, 1, 2, 3, 4, 5, 6],
-    snowfall_sum: [0, 0, 0, 0, 0, 0, 0],
-    windspeed_10m_max: [10, 10, 10, 10, 10, 10, 10],
-    humidity_2m_max: [50, 50, 50, 50, 50, 50, 50],
-    uv_index_max: [5, 5, 5, 5, 5, 5, 5],
-    daylight_hours: [8, 8, 8, 8, 8, 8, 8],
-    pollen_count: [10, 10, 10, 10, 10, 10, 10],
-  };
-
-  it('returns best days for activity', () => {
-    const bestDays = getBestDaysForActivity(daily, 'Outdoor sightseeing');
-    expect(Array.isArray(bestDays)).toBe(true);
-    expect(bestDays.length).toBeGreaterThan(0);
-    expect(bestDays.every(i => typeof i === 'number')).toBe(true);
-  });
-
-  it('returns empty array for unknown activity', () => {
-    expect(getBestDaysForActivity(daily, 'UnknownActivity' as any as Activity)).toEqual([]);
-  });
-
-  it('returns empty array for missing activity', () => {
-    expect(getBestDaysForActivity(daily, undefined as any)).toEqual([]);
-  });
-
-  it('returns empty array for empty daily', () => {
-    expect(getBestDaysForActivity({} as any, 'Skiing')).toEqual([]);
-  });
-
-  it('returns empty array for undefined daily', () => {
-    expect(getBestDaysForActivity(undefined as any, 'Skiing')).toEqual([]);
-  });
-
-  it('returns empty array for missing daily', () => {
-    expect(getBestDaysForActivity(null, 'Skiing')).toEqual([]);
   });
 });

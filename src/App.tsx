@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import './App.css';
-import { getActivityRankings, getBestDaysForActivity } from './logic/getActivityRankings';
+import { getActivityRankings } from './logic/getActivityRankings';
 import GoogleMapPicker from './components/GoogleMapPicker';
 import MoreTime from './components/MoreTime';
 import { activityMeta, formatDay, Activity } from './utils/activityUtils';
@@ -23,12 +23,6 @@ const App: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [suggestions, setSuggestions] = useState<any[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [bestDays, setBestDays] = useState<Record<Activity, number[]>>({
-    Skiing: [],
-    Surfing: [],
-    "Outdoor sightseeing": [],
-    "Indoor sightseeing": [],
-  });
   const [dailyTimes, setDailyTimes] = useState<string[]>([]);
   const [popupActivity, setPopupActivity] = useState<Activity | null>(null);
   const [pickedLocation, setPickedLocation] = useState<{ lat: number; lng: number } | null>(null);
@@ -124,17 +118,6 @@ const App: React.FC = () => {
       const newRankings = getActivityRankings(weatherData.daily, country, cityName);
       setRankings(newRankings);
 
-      const bestDaysObj: Record<Activity, number[]> = {
-        Skiing: [],
-        Surfing: [],
-        "Outdoor sightseeing": [],
-        "Indoor sightseeing": [],
-      };
-      ACTIVITIES.forEach((activity: Activity) => {
-        bestDaysObj[activity] = getBestDaysForActivity(weatherData.daily, activity, country, cityName);
-      });
-      setBestDays(bestDaysObj);
-
       setLoading(false);
       if (inputMode === 'map') setShowMapOverlay(false);
       if (placesApiFailed) setError('Unable to get info on surfing and skiing availability');
@@ -167,9 +150,8 @@ const App: React.FC = () => {
 
   // Popup rendering
   const renderPopup = () => {
-    if (!popupActivity || !bestDays[popupActivity] || bestDays[popupActivity].length === 0) return null;
+    if (!popupActivity) return null;
     const meta = activityMeta[popupActivity];
-    const sorted = [...bestDays[popupActivity]].sort((a, b) => a - b);
     return (
       <div className="popup-overlay" onClick={() => setPopupActivity(null)}>
         <div
@@ -183,54 +165,6 @@ const App: React.FC = () => {
           <div className="popup-title" style={{ color: meta.color }}>
             <span className="popup-icon">{meta.icon}</span>
             {popupActivity}
-          </div>
-          <div className="popup-bestdays-title" style={{ color: meta.color }}>
-            <svg width="20" height="20" viewBox="0 0 20 20" style={{marginRight: 3, verticalAlign: 'middle'}}>
-              <circle cx="10" cy="10" r="9" fill={meta.color} fillOpacity="0.18" />
-              <path d="M6.5 10.5l2 2 5-5" stroke={meta.color} strokeWidth="2" fill="none" strokeLinecap="round" />
-            </svg>
-            Best day{sorted.length > 1 ? 's' : ''}
-          </div>
-          <div className="popup-bestdays-list">
-            {sorted.map(i =>
-              dailyTimes && dailyTimes[i] ? (
-                <div
-                  key={i}
-                  style={{
-                    background: `linear-gradient(90deg, ${meta.color}22 60%, #fff0 100%)`,
-                    border: `1.5px solid ${meta.color}`,
-                    borderRadius: 8,
-                    padding: '0.45em 1.1em',
-                    fontWeight: 500,
-                    color: '#222',
-                    fontSize: '1.01rem',
-                    boxShadow: `0 2px 8px ${meta.color}18`,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 6,
-                  }}
-                >
-                  <svg width="16" height="16" viewBox="0 0 20 20" style={{marginRight: 2}}>
-                    <circle cx="10" cy="10" r="8" fill={meta.color} fillOpacity="0.22" />
-                  </svg>
-                  {formatDay(dailyTimes[i])}
-                </div>
-              ) : (
-                <div
-                  key={i}
-                  style={{
-                    background: '#eee',
-                    borderRadius: 8,
-                    padding: '0.45em 1.1em',
-                    fontWeight: 500,
-                    color: '#888',
-                    fontSize: '1.01rem',
-                  }}
-                >
-                  Day {i + 1}
-                </div>
-              )
-            )}
           </div>
           <div className="popup-reason">
             {rankings?.find(r => r.activity === popupActivity)?.reason}
