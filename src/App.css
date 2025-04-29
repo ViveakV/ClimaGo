@@ -367,3 +367,70 @@
   from { opacity: 0;}
   to { opacity: 1;}
 }
+.map-picker-container {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.15);
+  padding: 1rem;
+  margin-bottom: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.map-picker-title {
+  margin-bottom: 8px;
+  color: #333;
+  font-weight: 500;
+}
+.map-picker-picked {
+  margin-top: 10px;
+  color: #222;
+  font-size: 1.05rem;
+}
+.map-picker-search-btn {
+  margin-top: 16px;
+  background: #1976d2;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.7em 1.5em;
+  font-weight: 600;
+  font-size: 1.08rem;
+  cursor: pointer;
+  box-shadow: 0 2px 8px #1976d233;
+  transition: background 0.2s;
+  opacity: 1;
+}
+.map-picker-search-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+.map-picker-another {
+  width: 75%;
+  max-width: 600px;
+  margin-bottom: 32px;
+  display: flex;
+  justify-content: center;
+}
+.map-picker-another-btn {
+  background: #fff;
+  color: #1976d2;
+  border: 2px solid #1976d2;
+  border-radius: 8px;
+  padding: 0.7em 1.5em;
+  font-weight: 600;
+  font-size: 1.08rem;
+  cursor: pointer;
+  box-shadow: 0 2px 8px #1976d233;
+  transition: background 0.2s;
+}
+.capability-activity-full.skiing {
+  color: #3b82f6;
+  font-weight: 600;
+  margin-left: 6px;
+}
+.capability-activity-full.surfing {
+  color: #f59e42;
+  font-weight: 600;
+  margin-left: 6px;
+}

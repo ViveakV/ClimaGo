@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import './MoreTime.css';
+import { TEXT } from '../utils/constants';
 
 const LightbulbIcon: React.FC<{ size?: number }> = ({ size = 22 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
@@ -9,18 +10,7 @@ const LightbulbIcon: React.FC<{ size?: number }> = ({ size = 22 }) => (
   </svg>
 );
 
-const features = [
-  { icon: '🌍', text: 'Multi-day trip planner with route and weather optimization' },
-  { icon: '📱', text: 'Mobile-friendly PWA with offline support' },
-  { icon: '🔔', text: 'Push/email notifications for best activity days' },
-  { icon: '🗺️', text: 'More detailed map overlays (ski slopes, surf spots, POIs)' },
-  { icon: '🧑‍🤝‍🧑', text: 'Social sharing and trip collaboration' },
-  { icon: '🧠', text: 'AI-powered personalized recommendations' },
-  { icon: '🌦️', text: 'Hourly weather and real-time updates' },
-  { icon: '🗣️', text: 'Multi-language support' },
-  { icon: '💬', text: 'User reviews and tips for each activity/location' },
-  { icon: '🎨', text: 'More themes and accessibility options' },
-];
+const features = TEXT.FEATURES;
 
 const MoreTime: React.FC = () => {
   const [showPrompt, setShowPrompt] = useState(false);
@@ -51,7 +41,6 @@ const MoreTime: React.FC = () => {
       >
         <LightbulbIcon size={20} />
       </button>
-      {/* Password prompt popup */}
       {showPrompt && (
         <div className="moretime-overlay" onClick={() => setShowPrompt(false)}>
           <div className="moretime-popup" onClick={e => e.stopPropagation()}>
@@ -64,12 +53,12 @@ const MoreTime: React.FC = () => {
             </button>
             <div className="moretime-title">
               <LightbulbIcon />
-              If I had more time...
+              {TEXT.MORETIME_IF_I_HAD}
             </div>
             <form className="moretime-form" onSubmit={handleSubmit}>
               <input
                 type="password"
-                placeholder="Enter password"
+                placeholder={TEXT.MORETIME_PASSWORD_PLACEHOLDER}
                 value={password}
                 ref={inputRef}
                 onChange={e => { setPassword(e.target.value); setWrongPassword(false); }}
@@ -77,12 +66,12 @@ const MoreTime: React.FC = () => {
                 autoFocus
               />
               <button type="submit" className="moretime-submit-btn">
-                Submit
+                {TEXT.MORETIME_SUBMIT}
               </button>
             </form>
             {wrongPassword && (
               <div className="moretime-wrong">
-                Wrong password
+                {TEXT.MORETIME_WRONG_PASSWORD}
               </div>
             )}
           </div>
@@ -100,10 +89,10 @@ const MoreTime: React.FC = () => {
             </button>
             <div className="moretime-features-title">
               <LightbulbIcon size={26} />
-              If I had more time...
+              {TEXT.MORETIME_FEATURES_TITLE}
             </div>
             <div className="moretime-features-desc">
-              Here are some additional features and improvements I would add:
+              {TEXT.MORETIME_FEATURES_DESC}
             </div>
             <ul className="moretime-features-list">
               {features.map(({ icon, text }, idx) => (
