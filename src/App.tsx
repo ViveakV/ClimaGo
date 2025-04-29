@@ -5,46 +5,52 @@ import { getActivityRankings, getBestDaysForActivity } from './logic/getActivity
 import GoogleMapPicker from './components/GoogleMapPicker';
 import MoreTimeModal from './components/MoreTimeModal';
 import { activityMeta, formatDay, Activity } from './utils/activityUtils';
+import { getLatLngFromGeocode, fetchNearbyPlaces } from './utils/locationHelpers';
+import { ACTIVITIES, SEARCH_RADIUS_KM } from './utils/constants';
 
+// --- Types ---
 interface Ranking {
   activity: Activity;
   score: number;
   reason: string;
 }
 
-const activities: Activity[] = [
-  'Skiing',
-  'Surfing',
-  'Outdoor sightseeing',
-  'Indoor sightseeing',
-];
-
 const App: React.FC = () => {
-  const [useMapInput, setUseMapInput] = useState(false); // Add state to toggle map input
-  const [search, setSearch] = useState('');
+  // --- State ---
+  const [inputMode, setInputMode] = useState<'city' | 'map'>('city');
+  const [searchText, setSearchText] = useState('');
   const [showTooltip, setShowTooltip] = useState(false);
   const [loading, setLoading] = useState(false);
   const [rankings, setRankings] = useState<Ranking[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [suggestions, setSuggestions] = useState<any[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [bestDays, setBestDays] = useState<Record<Activity, number[]>>({} as any);
-  const [dailyTimes, setDailyTimes] = useState<string[]>([]); // <-- add this state
+  const [bestDays, setBestDays] = useState<Record<Activity, number[]>>({
+    Skiing: [],
+    Surfing: [],
+    "Outdoor sightseeing": [],
+    "Indoor sightseeing": [],
+  });
+  const [dailyTimes, setDailyTimes] = useState<string[]>([]);
   const [popupActivity, setPopupActivity] = useState<Activity | null>(null);
   const [pickedLocation, setPickedLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [hasSkiing, setHasSkiing] = useState<boolean | null>(null);
   const [hasSurfing, setHasSurfing] = useState<boolean | null>(null);
-  const [showMapOverlay, setShowMapOverlay] = useState(true); // controls map overlay visibility
+  const [showMapOverlay, setShowMapOverlay] = useState(true);
+
+  // MoreTimeModal state
+  const [showMoreTimePrompt, setShowMoreTimePrompt] = useState(false);
+  const [showMoreTimeOverlay, setShowMoreTimeOverlay] = useState(false);
+  const [moreTimePassword, setMoreTimePassword] = useState('');
+  const [wrongPassword, setWrongPassword] = useState(false);
+
   const tooltipTimeout = useRef<NodeJS.Timeout | null>(null);
-
-
   const GOOGLE_API_KEY = process.env.REACT_APP_GOOGLE_API_KEY as string;
-  const SEARCH_RADIUS_KM = 50;
-  const SEARCH_RADIUS_METERS = SEARCH_RADIUS_KM * 1000;
 
+  // --- Effects ---
   // Fetch suggestions as user types
   useEffect(() => {
-    if (search.trim().length < 2) {
+    if (searchText.trim().length < 2) {
       setSuggestions([]);
       setShowSuggestions(false);
       return;
@@ -53,7 +59,7 @@ const App: React.FC = () => {
     const fetchSuggestions = async () => {
       try {
         const res = await fetch(
-          `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(search)}&count=5`,
+          `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(searchText)}&count=5`,
           { signal: controller.signal }
         );
         const data = await res.json();
@@ -71,123 +77,79 @@ const App: React.FC = () => {
     };
     fetchSuggestions();
     return () => controller.abort();
-  }, [search]);
+  }, [searchText]);
 
+  // --- Handlers ---
   const handleSuggestionClick = (suggestion: any) => {
-    setSearch(suggestion.name + (suggestion.country ? `, ${suggestion.country}` : ''));
+    setSearchText(suggestion.name + (suggestion.country ? `, ${suggestion.country}` : ''));
     setShowSuggestions(false);
     setSuggestions([]);
   };
 
-  const handleButtonClick = async (e: React.MouseEvent) => {
-    // Only require search input if not using map
-    if (!useMapInput && !search.trim()) {
-      e.preventDefault();
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchText(e.target.value);
+    if (showTooltip) setShowTooltip(false);
+    setShowSuggestions(true);
+  };
+
+  const handleSearch = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    setError(null);
+
+    // Validate input
+    if (inputMode === 'city' && !searchText.trim()) {
       setShowTooltip(true);
       if (tooltipTimeout.current) clearTimeout(tooltipTimeout.current);
       tooltipTimeout.current = setTimeout(() => setShowTooltip(false), 2000);
       return;
     }
-    // In map mode, require a picked location
-    if (useMapInput && !pickedLocation) {
-      e.preventDefault();
-      return;
-    }
-    e.preventDefault();
+    if (inputMode === 'map' && !pickedLocation) return;
+
     setLoading(true);
-    setError(null);
     setRankings(null);
     setHasSkiing(null);
     setHasSurfing(null);
+
+    let lat: number, lng: number, cityName: string, country: string;
     let placesApiFailed = false;
+
     try {
-      let lat: number, lng: number, name: string, country: string;
-      if (useMapInput && pickedLocation) {
+      // Get coordinates
+      if (inputMode === 'map' && pickedLocation) {
         lat = pickedLocation.lat;
         lng = pickedLocation.lng;
-        name = `Lat: ${lat.toFixed(4)}, Lng: ${lng.toFixed(4)}`;
+        cityName = `Lat: ${lat.toFixed(4)}, Lng: ${lng.toFixed(4)}`;
         country = '';
       } else {
-        // 1. Geocode city name to lat/lon using Google Geocoding API
-        const address = encodeURIComponent(search.trim());
-        if (!address) {
-          setError('Please enter a valid city name.');
-          setLoading(false);
-          return;
-        }
+        const address = encodeURIComponent(searchText.trim());
         const geoRes = await fetch(
           `https://maps.googleapis.com/maps/api/geocode/json?address=${address}&key=${GOOGLE_API_KEY}`
         );
         const geoData = await geoRes.json();
-        if (!geoData.results || geoData.results.length === 0) {
+        const geo = getLatLngFromGeocode(geoData, searchText);
+        if (!geo) {
           setError('City not found.');
           setLoading(false);
           return;
         }
-        lat = typeof geoData.results[0].geometry.location.lat === 'string'
-          ? parseFloat(geoData.results[0].geometry.location.lat)
-          : geoData.results[0].geometry.location.lat;
-        lng = typeof geoData.results[0].geometry.location.lng === 'string'
-          ? parseFloat(geoData.results[0].geometry.location.lng)
-          : geoData.results[0].geometry.location.lng;
-        name = geoData.results[0].address_components?.[0]?.long_name || search;
-        const countryComp = geoData.results[0].address_components?.find((c: any) => c.types.includes('country'));
-        country = countryComp ? countryComp.long_name : '';
+        ({ lat, lng, name: cityName, country } = geo);
       }
 
-      // 2. Google Places Nearby Search for ski_resort and beach using correct POST API and headers
+      // Check for nearby skiing and surfing
       try {
-        const latitude = lat;
-        const longitude = lng;
-        const skiUrl = `https://places.googleapis.com/v1/places:searchNearby?key=${GOOGLE_API_KEY}`;
-        const surfUrl = `https://places.googleapis.com/v1/places:searchNearby?key=${GOOGLE_API_KEY}`;
-        const skiBody = {
-          includedTypes: ['ski_resort'],
-          maxResultCount: 10,
-          locationRestriction: {
-            circle: {
-              center: { latitude, longitude },
-              radius: SEARCH_RADIUS_METERS
-            }
-          }
-        };
-        const surfBody = {
-          includedTypes: ['beach'],
-          maxResultCount: 10,
-          locationRestriction: {
-            circle: {
-              center: { latitude, longitude },
-              radius: SEARCH_RADIUS_METERS
-            }
-          }
-        };
-        const commonHeaders = {
-          'Content-Type': 'application/json',
-          'X-Goog-Api-Key': GOOGLE_API_KEY,
-          'X-Goog-FieldMask': 'places.name,places.types'
-        };
         const [skiRes, surfRes] = await Promise.all([
-          fetch(skiUrl, {
-            method: 'POST',
-            headers: commonHeaders,
-            body: JSON.stringify(skiBody)
-          }).then(r => r.ok ? r.json() : null),
-          fetch(surfUrl, {
-            method: 'POST',
-            headers: commonHeaders,
-            body: JSON.stringify(surfBody)
-          }).then(r => r.ok ? r.json() : null)
+          fetchNearbyPlaces(GOOGLE_API_KEY, lat, lng, 'ski_resort'),
+          fetchNearbyPlaces(GOOGLE_API_KEY, lat, lng, 'beach'),
         ]);
-        // Defensive: check for null/undefined responses
-        setHasSkiing(skiRes && skiRes.places && skiRes.places.length > 0);
-        setHasSurfing(surfRes && surfRes.places && surfRes.places.length > 0);
-      } catch (placesErr) {
+        setHasSkiing(!!(skiRes && skiRes.places && skiRes.places.length > 0));
+        setHasSurfing(!!(surfRes && surfRes.places && surfRes.places.length > 0));
+      } catch {
         setHasSkiing(null);
         setHasSurfing(null);
         placesApiFailed = true;
       }
 
-      // 3. Fetch 7-day weather forecast (still use Open-Meteo)
+      // Fetch weather
       const weatherRes = await fetch(
         `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,snowfall_sum,windspeed_10m_max,weathercode&forecast_days=7&timezone=auto`
       );
@@ -197,41 +159,34 @@ const App: React.FC = () => {
         setLoading(false);
         return;
       }
-
       setDailyTimes(weatherData.daily.time || []);
 
-      // 4. Rank activities based on weather
-      const rankings = getActivityRankings(weatherData.daily, country, name);
+      // Rank activities and find best days
+      const newRankings = getActivityRankings(weatherData.daily, country, cityName);
+      setRankings(newRankings);
 
-      // 5. Find best days for each activity
-      const bestDaysObj: Record<Activity, number[]> = {} as any;
-      activities.forEach(activity => {
-        bestDaysObj[activity] = getBestDaysForActivity(weatherData.daily, activity, country, name);
+      // Fix: initialize bestDaysObj with all activities
+      const bestDaysObj: Record<Activity, number[]> = {
+        Skiing: [],
+        Surfing: [],
+        "Outdoor sightseeing": [],
+        "Indoor sightseeing": [],
+      };
+      ACTIVITIES.forEach((activity: Activity) => {
+        bestDaysObj[activity] = getBestDaysForActivity(weatherData.daily, activity, country, cityName);
       });
       setBestDays(bestDaysObj);
-      setRankings(rankings);
+
       setLoading(false);
-      if (useMapInput) setShowMapOverlay(false);
-      if (placesApiFailed) {
-        setError('Unable to get info on surfing and skiing availability');
-      }
-    } catch (err) {
+      if (inputMode === 'map') setShowMapOverlay(false);
+      if (placesApiFailed) setError('Unable to get info on surfing and skiing availability');
+    } catch {
       setError('Failed to fetch data.');
       setLoading(false);
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearch(e.target.value);
-    if (showTooltip) setShowTooltip(false);
-    setShowSuggestions(true);
-  };
-
-  const [showMoreTimePrompt, setShowMoreTimePrompt] = useState(false);
-  const [showMoreTimeOverlay, setShowMoreTimeOverlay] = useState(false);
-  const [moreTimePassword, setMoreTimePassword] = useState('');
-  const [wrongPassword, setWrongPassword] = useState(false);
-
+  // --- Render ---
   return (
     <div
       className="App"
@@ -243,7 +198,7 @@ const App: React.FC = () => {
         minHeight: '100vh',
       }}
     >
-      {/* "If I had more time" icon in top right */}
+      {/* MoreTimeModal */}
       <MoreTimeModal
         showPrompt={showMoreTimePrompt}
         setShowPrompt={setShowMoreTimePrompt}
@@ -482,6 +437,7 @@ const App: React.FC = () => {
           </div>
         </div>
       )}
+      {/* Background overlay */}
       <div
         style={{
           position: 'absolute',
@@ -504,7 +460,36 @@ const App: React.FC = () => {
           flexDirection: 'column',
         }}
       >
-        {/* Animated, themed toggle */}
+        <button
+          onClick={() => setShowMoreTimePrompt(true)}
+          style={{
+            position: 'absolute',
+            top: 24,
+            right: 32,
+            background: '#fffde7',
+            color: '#ffd600',
+            border: '2px solid #ffd600',
+            borderRadius: 10,
+            padding: '0.5em 1.2em',
+            fontWeight: 700,
+            fontSize: '1.05rem',
+            boxShadow: '0 2px 8px #ffd60022',
+            cursor: 'pointer',
+            zIndex: 10,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            transition: 'background 0.2s',
+          }}
+          aria-label="Show more time modal"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style={{marginRight: 4}}>
+            <circle cx="12" cy="12" r="10" fill="#fffde7" stroke="#ffd600" strokeWidth="2"/>
+            <path d="M9 17h6M10 20h4" stroke="#ffd600" strokeWidth="1.5" strokeLinecap="round"/>
+            <path d="M12 6a4 4 0 0 1 4 4c0 2-2 3-2 5h-4c0-2-2-3-2-5a4 4 0 0 1 4-4z" stroke="#ffd600" strokeWidth="1.5" fill="#fffde7"/>
+          </svg>
+        </button>
+        {/* Input mode toggle */}
         <div
           style={{
             marginBottom: 28,
@@ -521,7 +506,7 @@ const App: React.FC = () => {
             width: 340,
           }}
         >
-          {/* Type city option */}
+          {/* City input toggle */}
           <label
             style={{
               flex: 1,
@@ -532,30 +517,30 @@ const App: React.FC = () => {
               alignItems: 'center',
               fontWeight: 600,
               fontSize: '1.13rem',
-              color: !useMapInput ? '#1976d2' : '#555',
-              background: !useMapInput ? 'rgba(255,255,255,0.95)' : 'transparent',
+              color: inputMode === 'city' ? '#1976d2' : '#555',
+              background: inputMode === 'city' ? 'rgba(255,255,255,0.95)' : 'transparent',
               borderRadius: 14,
-              boxShadow: !useMapInput ? '0 2px 12px #1976d233' : 'none',
+              boxShadow: inputMode === 'city' ? '0 2px 12px #1976d233' : 'none',
               transition: 'all 0.25s cubic-bezier(.4,2,.6,1)',
-              transform: !useMapInput ? 'scale(1.06)' : 'scale(1)',
+              transform: inputMode === 'city' ? 'scale(1.06)' : 'scale(1)',
               marginRight: 2,
               position: 'relative',
               zIndex: 2,
-              outline: !useMapInput ? '2.5px solid #1976d2' : 'none',
+              outline: inputMode === 'city' ? '2.5px solid #1976d2' : 'none',
             }}
             htmlFor="type-city-radio"
           >
-            <span style={{ fontSize: 26, marginBottom: 2, transition: 'filter 0.2s', filter: !useMapInput ? 'drop-shadow(0 2px 2px #1976d2aa)' : 'none' }}>🏙️</span>
+            <span style={{ fontSize: 26, marginBottom: 2, transition: 'filter 0.2s', filter: inputMode === 'city' ? 'drop-shadow(0 2px 2px #1976d2aa)' : 'none' }}>🏙️</span>
             Type city
             <input
               id="type-city-radio"
               type="radio"
-              checked={!useMapInput}
-              onChange={() => { setUseMapInput(false); setShowMapOverlay(true); }}
+              checked={inputMode === 'city'}
+              onChange={() => { setInputMode('city'); setShowMapOverlay(true); }}
               style={{ display: 'none' }}
             />
           </label>
-          {/* Show map option */}
+          {/* Map input toggle */}
           <label
             style={{
               flex: 1,
@@ -566,32 +551,32 @@ const App: React.FC = () => {
               alignItems: 'center',
               fontWeight: 600,
               fontSize: '1.13rem',
-              color: useMapInput ? '#00bfae' : '#555',
-              background: useMapInput ? 'rgba(255,255,255,0.95)' : 'transparent',
+              color: inputMode === 'map' ? '#00bfae' : '#555',
+              background: inputMode === 'map' ? 'rgba(255,255,255,0.95)' : 'transparent',
               borderRadius: 14,
-              boxShadow: useMapInput ? '0 2px 12px #00bfae33' : 'none',
+              boxShadow: inputMode === 'map' ? '0 2px 12px #00bfae33' : 'none',
               transition: 'all 0.25s cubic-bezier(.4,2,.6,1)',
-              transform: useMapInput ? 'scale(1.06)' : 'scale(1)',
+              transform: inputMode === 'map' ? 'scale(1.06)' : 'scale(1)',
               marginLeft: 2,
               position: 'relative',
               zIndex: 2,
-              outline: useMapInput ? '2.5px solid #00bfae' : 'none',
+              outline: inputMode === 'map' ? '2.5px solid #00bfae' : 'none',
             }}
             htmlFor="show-map-radio"
           >
-            <span style={{ fontSize: 26, marginBottom: 2, transition: 'filter 0.2s', filter: useMapInput ? 'drop-shadow(0 2px 2px #00bfaeaa)' : 'none' }}>🗺️</span>
+            <span style={{ fontSize: 26, marginBottom: 2, transition: 'filter 0.2s', filter: inputMode === 'map' ? 'drop-shadow(0 2px 2px #00bfaeaa)' : 'none' }}>🗺️</span>
             Show map
             <input
               id="show-map-radio"
               type="radio"
-              checked={useMapInput}
-              onChange={() => { setUseMapInput(true); setShowMapOverlay(true); }}
+              checked={inputMode === 'map'}
+              onChange={() => { setInputMode('map'); setShowMapOverlay(true); }}
               style={{ display: 'none' }}
             />
           </label>
         </div>
         {/* City input or map picker */}
-        {!useMapInput ? (
+        {inputMode === 'city' ? (
           <div style={{ width: '75%', maxWidth: 600, position: 'relative', marginBottom: 32 }}>
             <form
               style={{
@@ -608,7 +593,7 @@ const App: React.FC = () => {
               <input
                 type="text"
                 placeholder="Search..."
-                value={search}
+                value={searchText}
                 onChange={handleInputChange}
                 style={{
                   flex: 1,
@@ -625,7 +610,7 @@ const App: React.FC = () => {
               />
               <button
                 type="submit"
-                onClick={handleButtonClick}
+                onClick={handleSearch}
                 style={{
                   background: 'none',
                   border: 'none',
@@ -734,7 +719,7 @@ const App: React.FC = () => {
                   )}
                   <button
                     type="button"
-                    onClick={handleButtonClick}
+                    onClick={handleSearch}
                     style={{
                       marginTop: 16,
                       background: '#1976d2',
