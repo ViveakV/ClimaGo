@@ -1,4 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
+import './GoogleMapPicker.css';
 
 interface Props {
   pickedLocation: { lat: number; lng: number } | null;
@@ -94,7 +95,7 @@ const GoogleMapPicker: React.FC<Props> = ({ pickedLocation, setPickedLocation, a
   return (
     <div
       ref={mapRef}
-      style={{ height: 300, width: '100%', borderRadius: 12 }}
+      className="google-map-picker"
     />
   );
 };

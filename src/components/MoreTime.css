@@ -1,0 +1,170 @@
+.moretime-btn {
+  position: absolute;
+  top: 24px;
+  right: 32px;
+  background: #fffde7;
+  color: #ffd600;
+  border: 2px solid #ffd600;
+  border-radius: 10px;
+  padding: 0.5em 1.2em;
+  font-weight: 700;
+  font-size: 1.05rem;
+  box-shadow: 0 2px 8px #ffd60022;
+  cursor: pointer;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.2s;
+}
+.moretime-overlay {
+  position: fixed;
+  top: 0; left: 0; width: 100vw; height: 100vh;
+  background: rgba(0,0,0,0.32);
+  z-index: 4000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.2s;
+}
+.moretime-popup {
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 8px 32px #0002;
+  padding: 2em 2.5em 1.5em 2.5em;
+  min-width: 260px;
+  min-height: 80px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: fadeInUp 0.25s;
+}
+.moretime-close-btn {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: #888;
+  cursor: pointer;
+  z-index: 10;
+  padding: 0;
+}
+.moretime-title {
+  font-weight: 700;
+  font-size: 1.13rem;
+  margin-bottom: 12px;
+  color: #ffd600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.moretime-form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.moretime-input {
+  padding: 0.7em 1em;
+  border-radius: 8px;
+  border: 1.5px solid #ffd600;
+  font-size: 1.07rem;
+  margin-bottom: 10px;
+  outline: none;
+  width: 180px;
+  transition: border 0.2s;
+}
+.moretime-input.wrong {
+  border: 2px solid #e53935;
+}
+.moretime-submit-btn {
+  background: #ffd600;
+  color: #222;
+  border: none;
+  border-radius: 8px;
+  padding: 0.6em 1.3em;
+  font-weight: 600;
+  font-size: 1.05rem;
+  cursor: pointer;
+  box-shadow: 0 2px 8px #ffd60033;
+  transition: background 0.2s;
+}
+.moretime-wrong {
+  color: #e53935;
+  margin-top: 8px;
+  font-weight: 500;
+  font-size: 1.01rem;
+}
+.moretime-features-popup {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px #0002;
+  padding: 2.5em 2.7em 2em 2.7em;
+  min-width: 320px;
+  min-height: 120px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: fadeInUp 0.25s;
+  max-width: 90vw;
+}
+.moretime-features-title {
+  font-weight: 700;
+  color: #ffd600;
+  font-size: 1.22rem;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.moretime-features-desc {
+  color: #444;
+  font-size: 1.09rem;
+  margin-bottom: 12px;
+  text-align: center;
+  font-weight: 500;
+}
+.moretime-features-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-width: 420px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.moretime-feature-item {
+  display: flex;
+  align-items: center;
+  background: linear-gradient(90deg, #fffde7 60%, #ffd60018 100%);
+  border-radius: 10px;
+  box-shadow: 0 1px 6px #ffd60022;
+  padding: 0.7em 1.1em;
+  font-weight: 500;
+  color: #222;
+  font-size: 1.05rem;
+  gap: 14px;
+  border-left: 4px solid #ffd600;
+  transition: background 0.2s;
+}
+.moretime-feature-icon {
+  font-size: 22px;
+  margin-right: 6px;
+  filter: drop-shadow(0 2px 2px #ffd60033);
+}
+.moretime-feature-text {
+  flex: 1;
+}
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(30px);}
+  to { opacity: 1; transform: translateY(0);}
+}
+@keyframes fadeIn {
+  from { opacity: 0;}
+  to { opacity: 1;}
+}

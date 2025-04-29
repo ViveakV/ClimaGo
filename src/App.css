@@ -1,37 +1,369 @@
-.App {
-  text-align: center;
+.app-background {
+  position: relative;
+  background-size: cover;
+  background-position: center;
+  min-height: 100vh;
+  /* Remove direct background-image, use pseudo-element for opacity */
 }
-
-.App-logo {
-  height: 40vmin;
+.app-background::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background-image: url('./assets/images/background.png');
+  background-size: cover;
+  background-position: center;
+  opacity: 0.7;
+  z-index: 0;
   pointer-events: none;
 }
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+.background-overlay {
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background-color: rgba(0,0,0,0.5);
+  z-index: 1;
 }
-
-.App-header {
+.main-content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   min-height: 100vh;
+  flex-direction: column;
+}
+.input-toggle-container {
+  margin-bottom: 28px;
+  display: flex;
+  gap: 0;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,0.13);
+  border-radius: 18px;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.10);
+  overflow: hidden;
+  padding: 4px;
+  position: relative;
+  width: 340px;
+}
+.input-toggle {
+  flex: 1;
+  cursor: pointer;
+  padding: 1.1em 0.5em;
   display: flex;
   flex-direction: column;
   align-items: center;
+  font-weight: 600;
+  font-size: 1.13rem;
+  color: #555;
+  background: transparent;
+  border-radius: 14px;
+  box-shadow: none;
+  transition: all 0.25s cubic-bezier(.4,2,.6,1);
+  transform: scale(1);
+  margin: 0 2px;
+  position: relative;
+  z-index: 2;
+  outline: none;
+}
+.input-toggle.active-city {
+  color: #1976d2;
+  background: rgba(255,255,255,0.95);
+  box-shadow: 0 2px 12px #1976d233;
+  transform: scale(1.06);
+  outline: 2.5px solid #1976d2;
+}
+.input-toggle.active-map {
+  color: #00bfae;
+  background: rgba(255,255,255,0.95);
+  box-shadow: 0 2px 12px #00bfae33;
+  transform: scale(1.06);
+  outline: 2.5px solid #00bfae;
+}
+.input-toggle-icon {
+  font-size: 26px;
+  margin-bottom: 2px;
+  transition: filter 0.2s;
+}
+.input-toggle-icon.city {
+  filter: drop-shadow(0 2px 2px #1976d2aa);
+}
+.input-toggle-icon.map {
+  filter: drop-shadow(0 2px 2px #00bfaeaa);
+}
+.city-input-container {
+  width: 75%;
+  max-width: 600px;
+  position: relative;
+  margin-bottom: 32px;
+}
+.city-input-form {
+  display: flex;
+  align-items: center;
+  background: white;
+  border-radius: 32px;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.15);
+  padding: 0.5rem 1rem;
+}
+.city-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 1.25rem;
+  background: transparent;
+  padding: 0.75rem 1rem;
+}
+.search-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  margin-left: 8px;
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+.tooltip {
+  position: absolute;
+  top: -2.2rem;
+  right: 0;
+  background: #222;
+  color: #fff;
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  z-index: 10;
+}
+.suggestions-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #fff;
+  border-radius: 0 0 12px 12px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  z-index: 20;
+  max-height: 220px;
+  overflow-y: auto;
+}
+.suggestion-item {
+  padding: 0.75rem 1.25rem;
+  cursor: pointer;
+  border-bottom: 1px solid #eee;
+  background: #fff;
+}
+.suggestion-item:last-child {
+  border-bottom: none;
+}
+.results-container {
+  width: 75%;
+  max-width: 600px;
+}
+.loading-text {
+  color: #fff;
+  text-align: center;
+  margin-top: 24px;
+}
+.error-text {
+  color: #ffb3b3;
+  text-align: center;
+  margin-top: 24px;
+}
+.places-api-warning {
+  color: #fbc02d;
+  text-align: center;
+  margin-top: 12px;
+  font-weight: 500;
+}
+.rankings-card {
+  background: rgba(255,255,255,0.95);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.10);
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  align-items: center;
+  animation: fadeIn 0.7s;
+}
+.rankings-title {
+  margin-top: 0;
+  margin-bottom: 16px;
+  color: #222;
+  text-align: center;
+}
+.rankings-info {
+  color: #666;
+  font-size: 1.01rem;
+  margin-bottom: 10px;
+  text-align: center;
+  width: 100%;
+  letter-spacing: 0.1px;
+  display: flex;
+  align-items: center;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+  gap: 6px;
 }
-
-.App-link {
-  color: #61dafb;
+.capability-info {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  margin-bottom: 8px;
+  margin-top: 2px;
 }
-
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.activity-rankings-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  justify-content: center;
+  width: 100%;
+}
+.activity-ranking-card {
+  flex: 1 1 220px;
+  min-width: 200px;
+  max-width: 260px;
+  background: #fff;
+  border-radius: 18px;
+  padding: 1.2rem 1rem 1.5rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  animation: fadeInUp 0.5s;
+  animation-fill-mode: both;
+  transition: transform 0.2s;
+  user-select: auto;
+  opacity: 1;
+  filter: none;
+  cursor: pointer;
+  pointer-events: auto;
+}
+.activity-ranking-card.unavailable {
+  opacity: 0.5;
+  filter: grayscale(0.7);
+  cursor: not-allowed;
+  pointer-events: none;
+  user-select: none;
+}
+.activity-icon {
+  font-size: 44px;
+  margin-bottom: 8px;
+  filter: drop-shadow(0 2px 2px #0001);
+}
+.activity-title {
+  font-weight: 700;
+  font-size: 1.15rem;
+  margin-bottom: 6px;
+  text-align: center;
+  letter-spacing: 0.2px;
+}
+.activity-score-bar {
+  width: 100%;
+  margin: 10px 0 16px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.score-bar-bg {
+  flex: 1;
+  height: 10px;
+  background: #eee;
+  border-radius: 8px;
+  overflow: hidden;
+  position: relative;
+}
+.score-bar-fill {
+  height: 100%;
+  border-radius: 8px;
+  transition: width 0.7s cubic-bezier(.4,2,.6,1);
+}
+.activity-score {
+  font-weight: 600;
+  font-size: 1.1rem;
+  min-width: 32px;
+  text-align: right;
+}
+.popup-overlay {
+  position: fixed;
+  top: 0; left: 0; width: 100vw; height: 100vh;
+  background: rgba(0,0,0,0.32);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.2s;
+}
+.popup-card {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px #0002;
+  padding: 2.2em 2.5em 2em 2.5em;
+  min-width: 260px;
+  min-height: 120px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: fadeInUp 0.25s;
+}
+.popup-close-btn {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  background: none;
+  border: none;
+  font-size: 22px;
+  color: #888;
+  cursor: pointer;
+  z-index: 10;
+  padding: 0;
+}
+.popup-title {
+  font-weight: 700;
+  font-size: 1.18rem;
+  margin-bottom: 10px;
+  letter-spacing: 0.2px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.popup-icon {
+  font-size: 28px;
+}
+.popup-bestdays-title {
+  font-weight: 600;
+  font-size: 1.08rem;
+  margin-bottom: 8px;
+  letter-spacing: 0.2px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.popup-bestdays-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 6px;
+}
+.popup-reason {
+  color: #444;
+  font-size: 1.01rem;
+  text-align: center;
+  margin-top: 10px;
+  animation: fadeIn 1s;
+  font-weight: 500;
+}
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(30px);}
+  to { opacity: 1; transform: translateY(0);}
+}
+@keyframes fadeIn {
+  from { opacity: 0;}
+  to { opacity: 1;}
 }
